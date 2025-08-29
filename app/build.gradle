@@ -22,7 +22,7 @@ plugins {
 
 def twaManifest = [
     applicationId: 'com.apluswealth.getcovered.twa',
-    hostName: 'getcovered.apluswealth.com/', // The domain being opened in the TWA.
+    hostName: 'getcovered.apluswealth.com', // The domain being opened in the TWA.
     launchUrl: '/', // The start path for the TWA. Must be relative to the domain.
     name: 'AplusWealth Inc. - Get Covered', // The application name.
     launcherName: 'Get Covered', // The name shown on the Android Launcher.
@@ -173,7 +173,7 @@ android {
 buildTypes {
     release {
         signingConfig signingConfigs.release
-        minifyEnabled true
+        // minifyEnabled true
         proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
     }
 }
