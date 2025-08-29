@@ -1,0 +1,27 @@
+cat > .gitignore <<'EOF'
+# Gradle
+.gradle/
+build/
+app/build/
+**/build/
+
+# Android/IDE
+.local/
+.idea/
+.vscode/
+*.iml
+
+# SDK/Local config
+local.properties
+
+# Keystore / secrets
+*.keystore
+*.jks
+keystore.jks
+keystore.properties
+gradle.properties  # اگر حاوی پسورد است، ترجیحاً لوکال نگه دار
+
+# Outputs
+*.apk
+*.aab
+EOF
