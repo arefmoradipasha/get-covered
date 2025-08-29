@@ -29,12 +29,25 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      # اگر نمی‌خوای keystore در ریپو باشه → از Secrets بازیابی کن
+      # اختیاری: برای حذف وارنینگ sdk.dir
+      - name: Create local.properties (optional)
+        run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+
+      # بازیابی امن keystore از Secrets
       - name: Restore keystore
-        run: echo "$KEYSTORE_BASE64" | base64 -d > "$GITHUB_WORKSPACE/android.keystore"
+        run: |
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$GITHUB_WORKSPACE/android.keystore"
+          ls -lh "$GITHUB_WORKSPACE/android.keystore"
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
 
+      # بررسی صحت keystore قبل از امضا
+      - name: Verify keystore
+        run: |
+          keytool -list -v -keystore "$GITHUB_WORKSPACE/android.keystore" \
+            -storetype PKCS12 -storepass "${{ secrets.KEY_STORE_PASSWORD }}" | head -n 25
+
+      # مقادیر امضا برای Gradle
       - name: Create signing gradle.properties
         run: |
           {
