@@ -6,45 +6,49 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
           cache: gradle
 
-      - uses: android-actions/setup-android@v3
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: Install SDK components
+      - name: Install SDK components (API 36)
         run: |
-          sdkmanager --licenses <<< "y"
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      # Restore keystore from GitHub Secrets
+      # اگر نمی‌خوای keystore در ریپو باشه → از Secrets بازیابی کن
       - name: Restore keystore
-        run: echo "$KEYSTORE_BASE64" | base64 -d > $GITHUB_WORKSPACE/keystore.jks
+        run: echo "$KEYSTORE_BASE64" | base64 -d > "$GITHUB_WORKSPACE/android.keystore"
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
 
       - name: Create signing gradle.properties
         run: |
-          cat >> "$GITHUB_WORKSPACE/gradle.properties" <<'EOF'
-          MY_KEYSTORE_PATH=keystore.jks
-          MY_KEY_ALIAS=${{ secrets.KEY_ALIAS }}
-          MY_KEY_STORE_PASSWORD=${{ secrets.KEY_STORE_PASSWORD }}
-          MY_KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}
-          EOF
+          {
+            echo "MY_KEYSTORE_PATH=android.keystore"
+            echo "MY_KEY_ALIAS=${{ secrets.KEY_ALIAS }}"
+            echo "MY_KEY_STORE_PASSWORD=${{ secrets.KEY_STORE_PASSWORD }}"
+            echo "MY_KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}"
+          } >> "$GITHUB_WORKSPACE/gradle.properties"
 
       - name: Build AAB
-        run: ./gradlew bundleRelease --stacktrace
+        run: ./gradlew bundleRelease --stacktrace --no-daemon
 
       - name: Build APK
-        run: ./gradlew assembleRelease --stacktrace
+        run: ./gradlew assembleRelease --stacktrace --no-daemon
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
