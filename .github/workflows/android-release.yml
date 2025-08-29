@@ -29,11 +29,9 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      # اختیاری: برای حذف وارنینگ sdk.dir
-      - name: Create local.properties (optional)
+      - name: Create local.properties (quiet the sdk.dir warning)
         run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
-      # بازیابی امن keystore از Secrets
       - name: Restore keystore
         run: |
           printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$GITHUB_WORKSPACE/android.keystore"
@@ -41,13 +39,42 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
 
-      # بررسی صحت keystore قبل از امضا
-      - name: Verify keystore
+      # تشخیص اتوماتیک نوع keystore و چک کردن alias
+      - name: Verify keystore (auto-detect type)
+        id: verifyks
+        shell: bash
         run: |
-          keytool -list -v -keystore "$GITHUB_WORKSPACE/android.keystore" \
-            -storetype PKCS12 -storepass "${{ secrets.KEY_STORE_PASSWORD }}" | head -n 25
+          set -e
+          FILE="$GITHUB_WORKSPACE/android.keystore"
+          PASS="${{ secrets.KEY_STORE_PASSWORD }}"
+          ALIAS="${{ secrets.KEY_ALIAS }}"
 
-      # مقادیر امضا برای Gradle
+          echo "Trying PKCS12 first..."
+          if keytool -list -v -keystore "$FILE" -storetype PKCS12 -storepass "$PASS" > ks.txt 2>&1; then
+            echo "TYPE=pkcs12" >> $GITHUB_OUTPUT
+          else
+            echo "PKCS12 failed, trying JKS..."
+            if keytool -list -v -keystore "$FILE" -storepass "$PASS" > ks.txt 2>&1; then
+              echo "TYPE=jks" >> $GITHUB_OUTPUT
+            else
+              echo "----- keytool output -----"
+              cat ks.txt
+              echo "--------------------------"
+              echo "Keystore cannot be read. Check KEYSTORE_BASE64 / password." >&2
+              exit 1
+            fi
+          fi
+
+          echo "Detected type: $(grep TYPE= $GITHUB_OUTPUT || true)"
+
+          echo "Checking alias presence..."
+          if ! grep -i "Alias name: *$ALIAS" ks.txt >/dev/null; then
+            echo "Alias '$ALIAS' not found in keystore!" >&2
+            echo "Available aliases:"
+            grep -i "Alias name:" ks.txt || true
+            exit 1
+          fi
+
       - name: Create signing gradle.properties
         run: |
           {
@@ -55,6 +82,7 @@ jobs:
             echo "MY_KEY_ALIAS=${{ secrets.KEY_ALIAS }}"
             echo "MY_KEY_STORE_PASSWORD=${{ secrets.KEY_STORE_PASSWORD }}"
             echo "MY_KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}"
+            echo "MY_KEYSTORE_TYPE=${{ steps.verifyks.outputs.TYPE }}"
           } >> "$GITHUB_WORKSPACE/gradle.properties"
 
       - name: Build AAB
