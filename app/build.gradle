@@ -150,6 +150,15 @@ android {
 
         
     }
+    signingConfigs {
+        release {
+            storeFile file(rootProject.file("android.keystore"))
+            storePassword "ashkonal"
+            keyAlias "aplus"       
+            keyPassword "ashkonal"
+        }
+    }
+    
     buildTypes {
         release {
             minifyEnabled true
