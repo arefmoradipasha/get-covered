@@ -214,9 +214,18 @@ repositories {
     
 }
 
+// dependencies {
+//     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    
+//         implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.6.2'
+    
+// }
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    
-        implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.6.2'
-    
+
+    implementation('com.google.androidbrowserhelper:androidbrowserhelper:2.6.2') {
+        exclude group: 'androidx.browser', module: 'browser'
+    }
+    implementation 'androidx.browser:browser:1.8.0'
 }
