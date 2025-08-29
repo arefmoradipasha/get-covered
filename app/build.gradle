@@ -70,29 +70,26 @@ android {
     }
 
 signingConfigs {
-  release {
-    storeFile file(rootProject.file(findProperty("MY_KEYSTORE_PATH") ?: "android.keystore"))
-    storePassword findProperty("MY_KEY_STORE_PASSWORD") ?: ""
-    keyAlias      findProperty("MY_KEY_ALIAS") ?: ""
-    keyPassword   findProperty("MY_KEY_PASSWORD") ?: ""
+    release {
+        storeFile file(rootProject.file("android.keystore"))
+        storePassword "ashkonal"
+        keyAlias "aplus"
+        keyPassword "ashkonal"
 
-    def ksType = findProperty("MY_KEYSTORE_TYPE")
-    if (ksType) {
-      storeType ksType   // 'pkcs12' یا 'jks' — اتوماتیک از مرحله Verify
+        v1SigningEnabled true
+        v2SigningEnabled true
     }
-
-    v1SigningEnabled true
-    v2SigningEnabled true
-  }
 }
 
-    buildTypes {
-        release {
-            signingConfig signingConfigs.release
-            minifyEnabled false 
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
+
+buildTypes {
+    release {
+        signingConfig signingConfigs.release
+        minifyEnabled false
+        shrinkResources false
+        proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
     }
+}
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
