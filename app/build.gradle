@@ -117,11 +117,9 @@ task generateShorcutsFile {
 preBuild.dependsOn(generateShorcutsFile)
 
 dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
-
-    // Helper جدید که به متدهای 1.9.x نیاز داره
     implementation "com.google.androidbrowserhelper:androidbrowserhelper:2.6.2"
-
-    // خود Browser جدید (متد setLaunchHandlerClientMode اینجاست)
     implementation "androidx.browser:browser:1.9.0-alpha04"
+}
+configurations.all {
+    resolutionStrategy { force 'androidx.browser:browser:1.9.0-alpha04' }
 }
