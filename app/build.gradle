@@ -150,20 +150,36 @@ android {
 
         
     }
-    signingConfigs {
+
+
+        signingConfigs {
         release {
             storeFile file(rootProject.file("android.keystore"))
-            storePassword "ashkonal"
-            keyAlias "aplus"       
-            keyPassword "ashkonal"
+            storePassword "Aplus2025!"
+            keyAlias "aplus_release"
+            keyPassword "Aplus2025!"
+
+            v1SigningEnabled true
+            v2SigningEnabled true
+            v3SigningEnabled true
+            v4SigningEnabled true
         }
     }
     
-    buildTypes {
+    // buildTypes {
+    //     release {
+    //         minifyEnabled true
+    //     }
+    // }
+
+        buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
